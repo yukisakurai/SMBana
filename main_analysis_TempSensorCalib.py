@@ -103,6 +103,43 @@ resist = []
 for i in range(4):
     resist.append(ch[i] * -1e5)
 
+ch_serial = ['x74322', 'x74376', 'x74355', 'x74391', 'D6059358', 'D6032612', 'D6027096', 'D6025126']
+# polynominal fit
+for i in range(0,4):
+    target_ch = ch[i]
+    THR = np.array([])
+    PARAM = np.array([])
+    param = []
+    threshold = []
+    for j in range(0,4):
+        T = ch5_calibT
+        R = (target_ch * -1e5)
+        if j == 0:
+            idx = np.where(R<1000)
+            npol = 10
+            t = 1000
+        if j == 1:
+            idx = np.where((R<=3000) & (R>1000))
+            npol = 10
+            t = 1000
+        if j == 2:
+            idx = np.where((R<=7000) & (R>3000))
+            npol = 10
+            t = 3000
+        if j == 3:
+            idx = np.where(R>7000)
+            npol = 5
+            t = 7000
+
+        T = T[idx]
+        R = R[idx]
+        p = np.poly1d(np.polyfit(R, T, npol))
+        param.append(p)
+        threshold.append(t)
+    THR = np.append(THR,threshold)
+    PARAM = np.append(PARAM,param)
+    np.savez(os.path.join('CalibData/', ch_serial[i]),THR=THR,PARAM=PARAM)
+
 
 # CANVAS
 fig = plt.figure(figsize=(10, 8))
@@ -112,9 +149,9 @@ fig.subplots_adjust(left=0.15,right=0.95)
 # PLOTS
 # ================
 ax = fig.add_subplot(111)
+ytitle = 'Temperature [K]'
+xtitle = r'Resistance [$\Omega$]'
 # xtitle = 'Time [hour]'
-xtitle = 'Temprature [K]'
-ytitle = r'Resistance [$\Omega$]'
 # ytitle = 'Voltage [V]'
 # ytitle = 'Magnetic Field [kG]'
 
@@ -123,73 +160,35 @@ plt.ylabel(ytitle, fontsize=24)
 ax.xaxis.set_label_coords(0.5, -0.1)
 ax.yaxis.set_label_coords(-0.1, 0.5)
 
-for i in range(3,4):
-    plt.plot(ch5_calibT,
-             ch[i] * -1e5,
-             style,
-             color=args.color[i],
-             linewidth = 2.0,
-             markersize = 5,
-             label='ch'+str(i+1))
-
-
-# polynominal fit
-target_ch = ch[3]
-idx1 = np.where(ch5_calibT>50)
-T1 = ch5_calibT[idx1]
-R1 = (target_ch * -1e5)[idx1]
-x1 = np.linspace(T1.min(), T1.max(), 10000)
-p1 = np.poly1d(np.polyfit(T1, R1, 10))
-plt.plot(x1,
-         p1(x1),
-         '-',
-         color=args.color[1],
+T = ch5_calibT
+R = ch[0] * -1e5
+plt.plot(R,
+         T,
+         style,
+         color=args.color[0],
          linewidth = 2.0,
-         label='ch'+str(i+1) + ' fit')
+         markersize = 5,
+         label='ch'+str(1))
 
-idx2 = np.where((ch5_calibT<=50.2) & (ch5_calibT>20))
-T2 = ch5_calibT[idx2]
-R2 = (target_ch * -1e5)[idx2]
-x2 = np.linspace(T2.min(), T2.max(), 10000)
-p2 = np.poly1d(np.polyfit(T2, R2, 10))
-plt.plot(x2,
-         p2(x2),
-         '-',
-         color=args.color[1],
-         linewidth = 2.0,
-         label='ch'+str(i+1) + ' fit')
+param_x74322 = np.load('CalibData/x74322.npz')['PARAM']
 
-idx3 = np.where((ch5_calibT<=20.2) & (ch5_calibT>10))
-T3 = ch5_calibT[idx3]
-R3 = (target_ch * -1e5)[idx3]
-x3 = np.linspace(T3.min(), T3.max(), 10000)
-p3 = np.poly1d(np.polyfit(T3, R3, 10))
-plt.plot(x3,
-         p3(x3),
-         '-',
-         color=args.color[1],
-         linewidth = 2.0,
-         label='ch'+str(i+1) + ' fit')
+for i in range(4):
+    p = param_x74322[i]
+    if i == 0: x = np.linspace(R.min(),1000,100)
+    if i == 1: x = np.linspace(1000,3000,100)
+    if i == 2: x = np.linspace(3000,7000,100)
+    if i == 3: x = np.linspace(7000,R.max(),100)
+    plt.plot(x,
+             np.polyval(p,x),
+             '-',
+             color='r',
+             linewidth = 2.0)
 
-idx4 = np.where(ch5_calibT<=10.2)
-T4 = ch5_calibT[idx4]
-R4 = (target_ch * -1e5)[idx4]
-x4 = np.linspace(T4.min(), T4.max(), 10000)
-p4 = np.poly1d(np.polyfit(T4, R4, 5))
-plt.plot(x4,
-         p4(x4),
-         '-',
-         color=args.color[1],
-         linewidth = 2.0,
-         label='ch'+str(i+1) + ' fit')
-print p1[0]
-print p1
 
 if args.ylim:
     ylim(args.ylim[0],args.ylim[1])
 if args.xlim:
     xlim(args.xlim[0],args.xlim[1])
-
 
 # LEGEND
 leg = plt.legend(loc='best',fontsize = 20)
@@ -200,8 +199,8 @@ for i in range(len(leg.legendHandles)):
 
 plt.grid()
 
-# plt.xscale('log')
-# plt.yscale('log')
+plt.xscale('log')
+plt.yscale('log')
 
 if args.save:
     plt.savefig(savename)

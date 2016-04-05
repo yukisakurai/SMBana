@@ -12,6 +12,7 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import MultipleLocator, AutoLocator
 import argparse
 import inspect
+from tqdm import tqdm
 
 def gaussian(x, norm, mu, sigma):
     return norm * exp(-(x - mu)**2.0 / (2 * sigma**2))
@@ -430,6 +431,79 @@ def read_VTBM(filename, sampling):
     ch58_T = np.array(ch58_T)
 
     return time, ch, ch58_T, B
+
+def read_VTRBM(filename, sampling):
+
+    time = np.array([])
+    ch1 = np.array([])
+    ch2 = np.array([])
+    ch3 = np.array([])
+    ch4 = np.array([])
+    ch5 = np.array([])
+    ch6 = np.array([])
+    ch7 = np.array([])
+    ch5_T = np.array([])
+    ch6_T = np.array([])
+    ch7_T = np.array([])
+    ch8_R = np.array([])
+    B = np.array([])
+
+    f = open(filename,'r')
+    data = f.read()
+    lines = data.split('\n')
+    lines.remove('')
+
+    i = 0
+    for line in tqdm(lines):
+        if i > sampling: break
+        i += 1
+
+        # define data
+        line = line.rstrip()
+        item = line.split('\t')
+        Date = item[0].split('/')
+        Time = item[1].split(':')
+
+        year = int(Date[0])
+        month = int(Date[1])
+        day = int(Date[2])
+        hour = int(Time[0])
+        min = int(Time[1])
+        sec = int(Time[2].split('.')[0])
+
+        DateTime = datetime.datetime(year, month, day, hour=hour, minute=min, second=sec)
+        # add data to arrays
+        time = np.append(time,DateTime)
+        ch1 = np.append(ch1,float(item[2]))
+        ch2 = np.append(ch2,float(item[3]))
+        ch3 = np.append(ch3,float(item[4]))
+        ch4 = np.append(ch4,float(item[5]))
+        ch5 = np.append(ch5,float(item[6]))
+        ch6 = np.append(ch6,float(item[7]))
+        ch7 = np.append(ch7,float(item[8]))
+        ch5_T = np.append(ch5_T,float(item[9]))
+        ch6_T = np.append(ch6_T,float(item[10]))
+        ch7_T = np.append(ch7_T,float(item[11]))
+        ch8_R = np.append(ch8_R,float(item[12]))
+        B = np.append(B,float(item[13]))
+
+    ch = []
+    ch.append(ch1)
+    ch.append(ch2)
+    ch.append(ch3)
+    ch.append(ch4)
+    ch.append(ch5)
+    ch.append(ch6)
+    ch.append(ch7)
+    ch = np.array(ch)
+
+    ch57_T = []
+    ch57_T.append(ch5_T)
+    ch57_T.append(ch6_T)
+    ch57_T.append(ch7_T)
+    ch57_T = np.array(ch57_T)
+
+    return time, ch, ch57_T, ch8_R, B
 
 
 def get_calib_TM(R):

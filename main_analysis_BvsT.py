@@ -13,13 +13,14 @@ from matplotlib.legend_handler import HandlerLine2D
 import datetime
 import argparse
 import lib_smb as lib_smb
+import lib_TS as lib_TS
 
 parser = argparse.ArgumentParser(description='description : main analysis script of SMB test for LiteBIRD HWP')
 parser.add_argument('-f', '--file',
                     nargs=1,
                     action='store',
                     type=str,
-                    default='20160307_YSTM',
+                    default='20160330_YSTM',
                     help=' : directory name of input files')
 parser.add_argument('-c', '--color',
                     nargs='*',
@@ -82,8 +83,7 @@ if os.path.exists(filename):
     print 'READ FILE : %s' % file
     print ''
 
-    ttime, ch, ch58_T, B = lib_smb.read_VTBM(filename,sampling)
-#    B = B * (-1)
+    ttime, ch, ch57_T, ch8_R, B = lib_smb.read_VTRBM(filename,sampling)
     relttime = lib_smb.get_rel_time_hour(ttime)
 
 else:
@@ -95,9 +95,9 @@ print '--------------------------------------------------'
 print 'PLOTTING'
 print ''
 
-# B normalize
-# B = B / np.max(B)
-# B2 = B2 / np.max(B2)
+ch_calibT = lib_TS.TempCernox('x74322',ch[0] * 1e5)
+ch_calibT = ch57_T[0]
+HS_calibT = lib_TS.CalibSiPD(ch[6],'D6059358')
 
 # CANVAS
 fig = plt.figure(figsize=(10, 8))
@@ -107,24 +107,25 @@ fig.subplots_adjust(left=0.15,right=0.95)
 # PLOTS
 # ================
 ax = fig.add_subplot(111)
-xtitle = 'Time [hour]'
-ytitle = r'Resistance [$\Omega$]'
+#xtitle = 'Time [hour]'
+#ytitle = r'Resistance [$\Omega$]'
 # ytitle = 'Voltage [V]'
-# xtitle = 'Temprature [K]'
-# ytitle = 'Magnetic Field [kG]'
+xtitle = 'Temperature [K]'
+ytitle = 'Magnetic Field [kG]'
 plt.xlabel(xtitle, fontsize=24)
 plt.ylabel(ytitle, fontsize=24)
 ax.xaxis.set_label_coords(0.5, -0.1)
 ax.yaxis.set_label_coords(-0.1, 0.5)
 
-for i in range(4):
-    plt.plot(relttime,
-             ch[i] * (-1e6),
-             style,
-             color=args.color[i],
-             linewidth = 2.0,
-             markersize = 4,
-             label='ch'+str(i+1))
+#for i in range(4):
+i=0
+plt.plot(ch_calibT,
+         B,
+         style,
+         color=args.color[0],
+         linewidth = 2.0,
+         markersize = 4,
+         label='ch'+str(i+1))
 
 if args.ylim:
     ylim(args.ylim[0],args.ylim[1])
@@ -139,6 +140,8 @@ for i in range(len(leg.legendHandles)):
     leg.legendHandles[i]._legmarker.set_markersize(20)
 
 plt.grid()
+
+np.savez(args.file,T=ch_calibT,B=B,HS_T=HS_calibT)
 
 if args.save:
     plt.savefig(savename)

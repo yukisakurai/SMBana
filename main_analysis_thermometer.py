@@ -115,7 +115,7 @@ np.savez('20160205_Calib',T=ch[4],R=ch[2])
 # PLOTS
 # ================
 ax = fig.add_subplot(111)
-xtitle = 'Temprature [K]'
+xtitle = 'Temperature [K]'
 ytitle = r'Resistance [$\Omega$]'
 plt.xlabel(xtitle, fontsize=24)
 plt.ylabel(ytitle, fontsize=24)

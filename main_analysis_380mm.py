@@ -17,7 +17,7 @@ import lib_smb as lib_smb
 
 parser = argparse.ArgumentParser(description='description : main analysis script of SMB test for LiteBIRD HWP')
 parser.add_argument('-f', '--file',
-                    nargs=1,
+                    nargs='*',
                     action='store',
                     type=str,
                     default='20160314_YSTM',
@@ -85,21 +85,27 @@ savename = 'plot/' + DATE + '/LargeSizeSMB_' + now.strftime('%H%M%S') + '.png'
 # READ INPUT FILE
 # ================
 
-dir = args.file.split('_')[0] + '_' + args.file.split('_')[1]
-file = dir.split('_')[0] + '_YSTM_before_release_2kHz'
-filename = os.getcwd() + '/../data/' + dir + '/' + file + '.txt'
-if os.path.exists(filename):
-    print ''
-    print '--------------------------------------------------'
-    print 'READ FILE : %s' % file
-    print ''
+suffix = ['before_release','release']
+reltime = []
+B = []
+opt = []
+for i in len(args.file):
+    dir = args.file[i].split('_')[0] + '_' + args.file[i].split('_')[1]
+    file = dir.split('_')[0] + '_YSTM_' + suffix[i] + '_2kHz'
+    filename = os.getcwd() + '/../data/' + dir + '/' + file + '.txt'
+    if os.path.exists(filename):
+        print ''
+        print '--------------------------------------------------'
+        print 'READ FILE : %s' % file
+        print ''
 
-    time, opt, B = lib_smb.read_data_2ch(filename,sampling)
-    reltime = lib_smb.get_rel_time(time)
+        time_temp, opt_temp, B_temp = lib_smb.read_data_2ch(filename,sampling)
+        reltime_temp = lib_smb.get_rel_time(time)
 
-else:
-    print 'error : %s does not exist' % filename
-    exit()
+
+    else:
+        print 'error : %s does not exist' % filename
+        exit()
 
 print ''
 print '--------------------------------------------------'
@@ -122,7 +128,7 @@ fig.subplots_adjust(left=0.15,right=0.95)
 ax = fig.add_subplot(111)
 # xtitle = 'Time [sec]'
 xtitle = 'Frequency [Hz]'
-# xtitle = 'Temprature [K]'
+# xtitle = 'Temperature [K]'
 # ytitle = 'Magnetic Field [kG]'
 ytitle = 'Amplitude'
 plt.xlabel(xtitle, fontsize=24)
@@ -141,7 +147,7 @@ ax.yaxis.set_label_coords(-0.1, 0.5)
 plt.plot(freq,
          np.abs(B_fft),
          style,
-         color=args.color[0],
+         color=args.color[1],
          linewidth = 2.0,
          markersize = 4,
          label='Amplitude')

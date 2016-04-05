@@ -126,7 +126,7 @@ fig.subplots_adjust(left=0.15,right=0.95)
 ax = fig.add_subplot(111)
 # xtitle = 'Time [sec]'
 xtitle = 'Frequency [Hz]'
-# xtitle = 'Temprature [K]'
+# xtitle = 'Temperature [K]'
 # ytitle = 'Magnetic Field [kG]'
 ytitle = 'Amplitude'
 plt.xlabel(xtitle, fontsize=24)

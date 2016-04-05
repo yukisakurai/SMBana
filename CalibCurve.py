@@ -72,7 +72,7 @@ fig.subplots_adjust(left=0.15,right=0.95)
 # PLOTS
 # ================
 ax = fig.add_subplot(111)
-xtitle = 'Temprature [K]'
+xtitle = 'Temperature [K]'
 ytitle = 'Voltage [V]'
 plt.xlabel(xtitle, fontsize=24)
 plt.ylabel(ytitle, fontsize=24)
